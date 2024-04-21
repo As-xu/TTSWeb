@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 查询定时任务调度列表
-export function listJob(query) {
+export function queryAllJobs(query) {
   return request({
-    url: '/monitor/job/list',
-    method: 'get',
-    params: query
+    url: '/system/query_all_scheduler_job',
+    method: 'post',
+    data: query
   })
 }
 

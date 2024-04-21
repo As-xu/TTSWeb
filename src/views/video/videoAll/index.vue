@@ -4,25 +4,16 @@
          <el-form-item label="视频名称" prop="videoName">
             <el-input
                v-model="queryParams.videoName"
-               placeholder="请输入角色名称"
+               placeholder="请输入视频名称"
                clearable
                style="width: 240px"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="权限字符" prop="isShow">
-            <el-input
-               v-model="queryParams.roleKey"
-               placeholder="请输入权限字符"
-               clearable
-               style="width: 240px"
-               @keyup.enter="handleQuery"
-            />
-         </el-form-item>
-         <el-form-item label="状态" prop="videoType">
+         <el-form-item label="视频类型" prop="videoType">
             <el-select
                v-model="queryParams.status"
-               placeholder="角色状态"
+               placeholder="视频类型"
                clearable
                style="width: 240px"
             >
@@ -34,6 +25,21 @@
                />
             </el-select>
          </el-form-item>
+        <el-form-item label="状态" prop="videoType">
+          <el-select
+              v-model="queryParams.status"
+              placeholder="状态"
+              clearable
+              style="width: 240px"
+          >
+            <el-option
+                v-for="dict in sys_normal_disable"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
          <el-form-item label="创建时间" style="width: 308px">
             <el-date-picker
                v-model="lastUpdateTime"
@@ -94,31 +100,21 @@
       <!-- 表格数据 -->
       <el-table v-loading="loading" :data="roleList" @selection-change="handleSelectionChange">
          <el-table-column type="selection" width="55" align="center" />
-         <el-table-column label="视频名称" prop="roleId" width="120" />
-         <el-table-column label="描述" prop="roleName" :show-overflow-tooltip="true" width="150" />
-         <el-table-column label="评分" prop="roleKey" :show-overflow-tooltip="true" width="150" />
-         <el-table-column label="封面地址" prop="roleSort" width="100" />
-         <el-table-column label="是否展示" prop="roleSort" width="100" />
-         <el-table-column label="状态" align="center" width="100">
-         <el-table-column label="视频更新时间" align="center" width="100">
-         <el-table-column label="有系列" align="center" width="100">
-         <el-table-column label="视频类型" align="center" width="100">
-         <el-table-column label="创建时间" align="center" width="100">
-         <el-table-column label="修改时间" align="center" width="100">
-            <template #default="scope">
-               <el-switch
-                  v-model="scope.row.status"
-                  active-value="0"
-                  inactive-value="1"
-                  @change="handleStatusChange(scope.row)"
-               ></el-switch>
-            </template>
+         <el-table-column label="视频名称" prop="video_name" width="120" />
+         <el-table-column label="描述" prop="video_desc" :show-overflow-tooltip="true" width="150" />
+         <el-table-column label="评分" prop="video_score" :show-overflow-tooltip="true" width="150" />
+         <el-table-column label="封面地址" prop="video_cover_pic" width="100" />
+         <el-table-column label="是否展示" prop="is_show" width="100" />
+         <el-table-column label="状态" prop="status" align="center" width="100" />
+         <el-table-column label="视频更新时间" prop="last_update_time" align="center" width="100" />
+         <el-table-column label="有系列" prop="is_series" align="center" width="100" />
+         <el-table-column label="视频类型" prop="video_type" align="center" width="100" />
+         <el-table-column label="创建时间" prop="create_date" align="center" width="100" >
+           <template #default="scope">
+             <span>{{ parseTime(scope.row.create_date) }}</span>
+           </template>
          </el-table-column>
-         <el-table-column label="创建时间" align="center" prop="createTime">
-            <template #default="scope">
-               <span>{{ parseTime(scope.row.createTime) }}</span>
-            </template>
-         </el-table-column>
+         <el-table-column label="修改时间" prop="write_date" align="center" width="100" />
          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template #default="scope">
               <el-tooltip content="修改" placement="top" v-if="scope.row.roleId !== 1">

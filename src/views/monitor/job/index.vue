@@ -87,27 +87,24 @@
          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
-      <el-table v-loading="loading" :data="jobList" @selection-change="handleSelectionChange">
+      <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
          <el-table-column type="selection" width="55" align="center" />
-         <el-table-column label="任务编号" width="100" align="center" prop="jobId" />
-         <el-table-column label="任务名称" align="center" prop="jobName" :show-overflow-tooltip="true" />
-         <el-table-column label="任务组名" align="center" prop="jobGroup">
-            <template #default="scope">
-               <dict-tag :options="sys_job_group" :value="scope.row.jobGroup" />
-            </template>
-         </el-table-column>
-         <el-table-column label="调用目标字符串" align="center" prop="invokeTarget" :show-overflow-tooltip="true" />
-         <el-table-column label="cron执行表达式" align="center" prop="cronExpression" :show-overflow-tooltip="true" />
-         <el-table-column label="状态" align="center">
-            <template #default="scope">
-               <el-switch
-                  v-model="scope.row.status"
-                  active-value="0"
-                  inactive-value="1"
-                  @change="handleStatusChange(scope.row)"
-               ></el-switch>
-            </template>
-         </el-table-column>
+         <el-table-column label="任务编号" width="100" align="center" prop="id" />
+         <el-table-column label="任务名称" width="100" align="center" prop="name" />
+         <el-table-column label="任务方法名/函数名" align="center" prop="func_name" :show-overflow-tooltip="true" />
+         <el-table-column label="任务类名" align="center" prop="class_name" :show-overflow-tooltip="true" />
+         <el-table-column label="任务类型" align="center" prop="func_type" :show-overflow-tooltip="true" />
+         <el-table-column label="任务路径" align="center" prop="func_path" />
+         <el-table-column label="触发器" align="center" prop="trigger" />
+         <el-table-column label="参数" align="center" prop="parameters" />
+         <el-table-column label="下次执行时间" align="center" prop="next_run_time" />
+         <el-table-column label="并发个数" align="center" prop="max_instances" />
+         <el-table-column label="等待执行任务秒数" align="center" prop="misfire_grace_time" />
+         <el-table-column label="是否可用" align="center" prop="active" />
+         <el-table-column label="是否跳过错过任务" align="center" prop="coalesce" />
+<!--            <template #default="scope">-->
+<!--               <dict-tag :options="sys_job_group" :value="scope.row.jobGroup" />-->
+<!--            </template>-->
          <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
             <template #default="scope">
                <el-tooltip content="修改" placement="top">
@@ -130,9 +127,9 @@
       </el-table>
 
       <pagination
-         v-show="total > 0"
-         :total="total"
-         v-model:page="queryParams.pageNum"
+         v-show="pageCount > 0"
+         :total="pageCount"
+         v-model:page="queryParams.pageIndex"
          v-model:limit="queryParams.pageSize"
          @pagination="getList"
       />
@@ -285,33 +282,34 @@
 </template>
 
 <script setup name="Job">
-import { listJob, getJob, delJob, addJob, updateJob, runJob, changeJobStatus } from "@/api/monitor/job";
+import { queryAllJobs, getJob, delJob, addJob, updateJob, runJob, changeJobStatus } from "@/api/monitor/job";
 import Crontab from '@/components/Crontab'
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { sys_job_group, sys_job_status } = proxy.useDict("sys_job_group", "sys_job_status");
+// const { sys_job_group, sys_job_status } = proxy.useDict("sys_job_group", "sys_job_status");
+const sys_job_group = ref([]);
+const sys_job_status = ref([]);
 
-const jobList = ref([]);
+const dataList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
 const multiple = ref(true);
-const total = ref(0);
 const title = ref("");
 const openView = ref(false);
 const openCron = ref(false);
 const expression = ref("");
+const pageCount = ref(0);
 
 const data = reactive({
   form: {},
   queryParams: {
-    pageNum: 1,
-    pageSize: 10,
-    jobName: undefined,
-    jobGroup: undefined,
-    status: undefined
+    pageIndex: 1,
+    pageSize: 100,
+    orderBy: "",
+    queryCondition:[]
   },
   rules: {
     jobName: [{ required: true, message: "任务名称不能为空", trigger: "blur" }],
@@ -325,12 +323,13 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询定时任务列表 */
 function getList() {
   loading.value = true;
-  listJob(queryParams.value).then(response => {
-    jobList.value = response.rows;
-    total.value = response.total;
+  queryAllJobs(queryParams.value).then(response => {
+    dataList.value = response.data.page_data;
+    pageCount.value = response.data.page_count;
     loading.value = false;
-  });
+  })
 }
+
 /** 任务组名字典翻译 */
 function jobGroupFormat(row, column) {
   return proxy.selectDictLabel(sys_job_group.value, row.jobGroup);
@@ -479,5 +478,10 @@ function handleExport() {
   }, `job_${new Date().getTime()}.xlsx`);
 }
 
-getList();
+function init_menu() {
+  loading.value = false
+}
+
+init_menu();
+
 </script>
